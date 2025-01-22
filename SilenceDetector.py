@@ -1,74 +1,103 @@
-'''
-SilenceDetector V3!
-
-Now with new features such as:
-    Discord web hooks!
-
-Possible V4 Ideas:
-    We add silly messages to the discord embeds
-    We pull data such as current show and on air studio, current media item and add it to the report
-     
-'''
-import urllib, http.client
-import RPI.GPIO as GPIO
+import time
+import urllib.parse
+import http.client
+import RPi.GPIO as GPIO
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from datetime import datetime
+from dotenv import load_dotenv
 import os
 
+# Load environment variables from .env file
+script_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(script_dir, ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    raise FileNotFoundError(f"Error: .env file not found in {dotenv_path}")
+
+# Environment variables for webhook and Pushover
 webhookURL = os.getenv("WEBHOOK_URL")
 pushoverToken = os.getenv("PUSHOVER_TOKEN")
 pushoverUser = os.getenv("PUSHOVER_USER")
 
+if not webhookURL or not pushoverToken or not pushoverUser:
+    raise ValueError("Error: Required environment variables are not set in .env file")
 
-class printColours:
+class PrintColours:
     ERROR = '\033[91m'
     OKGREEN = '\033[92m'
     ENDC = '\033[0m'
 
-def printError(message):
-    print("[",f"{printColours.ERROR}ERROR",f"{printColours.ENDC}] ", message)
+def print_error(message):
+    print("[", f"{PrintColours.ERROR}ERROR", f"{PrintColours.ENDC}] ", message)
 
-def printOK(message):
-    print("[",f"{printColours.OKGREEN}OK",f"{printColours.ENDC}] ", message)
+def print_ok(message):
+    print("[", f"{PrintColours.OKGREEN}OK", f"{PrintColours.ENDC}] ", message)
 
-def sendPushover(message):
+def send_pushover(message):
     conn = http.client.HTTPSConnection("api.pushover.net:443")
     conn.request("POST", "/1/messages.json",
     urllib.parse.urlencode({
-        "token": "pushoverToken",
-        "user": "pushoverUser",
+        "token": pushoverToken,
+        "user": pushoverUser,
         "message": message,
-        "sound": "gamelan",
         "priority": "1",
         "retry": "30",
         "expire": "180",
         "tags": "EngineeringAlertSystem"
     }), { "Content-type": "application/x-www-form-urlencoded" })
-    res = conn.getresponse()
-    printOK("Pushover notification sent!")    
+    conn.getresponse()
+    print_ok("Pushover notification sent!")
 
-def sendDiscordWebHook(title, message, colour):    
-    webhook = DiscordWebhook(url="webhookURL", rate_limit_retry=True, content="Webhook Message")
-    embed = DiscordEmbed(title=title, description=message, color=colour)    
-    embed.set_footer(text=datetime.now().strftime("%D/%M/%Y %H:%M:%S")) #Timestamp Here!
+def send_discord_webhook(title, message, colour):
+    webhook = DiscordWebhook(url=webhookURL, rate_limit_retry=True)
+    embed = DiscordEmbed(title=title, description=message, color=colour)
+    embed.set_footer(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # Timestamp
     webhook.add_embed(embed)
     response = webhook.execute()
-    return(response)
+    if response.status_code == 200:
+        print_ok("Discord notification sent!")
+    else:
+        print_error(f"Failed to send Discord notification. Status: {response.status_code}")
 
+# GPIO setup
+GPIO_PIN = 10
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+# Debounce settings
+debounce_time = 0.3  # 300ms debounce
+last_state = GPIO.LOW
+last_event_time = 0
 
+try:
+    print_ok("Monitoring GPIO pin for state changes...")
+    while True:
+        current_state = GPIO.input(GPIO_PIN)
+        current_time = time.time()
 
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        if current_state != last_state and (current_time - last_event_time) > debounce_time:
+            if current_state == GPIO.HIGH:
+                send_pushover("Silence Detector Tripped")
+                send_discord_webhook(
+                    "Silence Detector Tripped",
+                    "Switched to backup source",
+                    "#f71202"
+                )
+            else:
+                send_pushover("Silence Detector Reset")
+                send_discord_webhook(
+                    "Silence Detector Reset",
+                    "_and now back to our regularly scheduled programming_",
+                    "#03f813"
+                )
+            last_event_time = current_time
+            last_state = current_state
 
+        time.sleep(0.05)  # Small delay to prevent excessive CPU usage
 
-while(True):
-    #Wait for alarm to activate
-    GPIO.wait_for_edge(10, GPIO.RISING)
-    sendPushover("Silence Detector Tripped")
-    sendDiscordWebHook("Silence Detector Tripped", "Someone should probably go fix that", "##f71202")
-    #Wait for alarm to reset
-    GPIO.wait_for_edge(10, GPIO.FALLING)
-    sendPushover("Silence Detector Reset")
-    sendDiscordWebHook("Silence Detector Reset", "_and now back to our reguarly scheduled programming_", "#03f813")
-
-
+except KeyboardInterrupt:
+    print_error("Monitoring interrupted by user.")
+finally:
+    GPIO.cleanup()
+    print_ok("GPIO cleanup completed.")
