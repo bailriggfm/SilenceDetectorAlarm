@@ -2,7 +2,7 @@ import time
 import urllib.parse
 import http.client
 import RPi.GPIO as GPIO
-from discord_webhook import DiscordWebhook, DiscordEmbed
+#from discord_webhook import DiscordWebhook, DiscordEmbed
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -44,30 +44,30 @@ def send_pushover(message):
         "priority": "1",
         "retry": "30",
         "expire": "180",
-        "tags": "EngineeringAlertSystem"
+        "tags": "RelayStatusSystem"
     }), { "Content-type": "application/x-www-form-urlencoded" })
     conn.getresponse()
     print_ok("Pushover notification sent!")
 
-def send_discord_webhook(title, message, colour):
-    webhook = DiscordWebhook(url=webhookURL, rate_limit_retry=True)
-    embed = DiscordEmbed(title=title, description=message, color=colour)
-    embed.set_footer(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # Timestamp
-    webhook.add_embed(embed)
-    response = webhook.execute()
-    if response.status_code == 200:
-        print_ok("Discord notification sent!")
-    else:
-        print_error(f"Failed to send Discord notification. Status: {response.status_code}")
+#def send_discord_webhook(title, message, colour):
+#    webhook = DiscordWebhook(url=webhookURL, rate_limit_retry=True)
+#    embed = DiscordEmbed(title=title, description=message, color=colour)
+#    embed.set_footer(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # Timestamp
+#    webhook.add_embed(embed)
+#    response = webhook.execute()
+#    if response.status_code == 200:
+#        print_ok("Discord notification sent!")
+#    else:
+#        print_error(f"Failed to send Discord notification. Status: {response.status_code}")
 
 # GPIO setup
 GPIO_PIN = 10
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Use PUD_UP since the relay is normally open
 
 # Debounce settings
 debounce_time = 0.3  # 300ms debounce
-last_state = GPIO.LOW
+last_state = GPIO.HIGH
 last_event_time = 0
 
 try:
@@ -76,21 +76,24 @@ try:
         current_state = GPIO.input(GPIO_PIN)
         current_time = time.time()
 
+        # Check for state changes with debounce
         if current_state != last_state and (current_time - last_event_time) > debounce_time:
-            if current_state == GPIO.HIGH:
-                send_pushover("Silence Detector Tripped")
-                send_discord_webhook(
-                    "Silence Detector Tripped",
-                    "Switched to backup source",
-                    "#f71202"
-                )
-            else:
-                send_pushover("Silence Detector Reset")
-                send_discord_webhook(
-                    "Silence Detector Reset",
-                    "_and now back to our regularly scheduled programming_",
-                    "#03f813"
-                )
+            if current_state == GPIO.LOW:  # Relay activated
+                send_pushover("Relay Activated: Circuit Closed")
+                # Uncomment and update the following if using Discord webhook
+                # send_discord_webhook(
+                #     "Relay Activated",
+                #     "The relay circuit is now closed.",
+                #     "#f71202"
+                # )
+            else:  # Relay deactivated
+                send_pushover("Relay Deactivated: Circuit Open")
+                # Uncomment and update the following if using Discord webhook
+                # send_discord_webhook(
+                #     "Relay Deactivated",
+                #     "The relay circuit is now open.",
+                #     "#03f813"
+                # )
             last_event_time = current_time
             last_state = current_state
 

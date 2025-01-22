@@ -6,6 +6,13 @@ SERVICE_NAME="SilenceDetector"
 PYTHON_SCRIPT_PATH="/opt/$SERVICE_NAME/SilenceDetector.py"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 
+echo Install depends
+sudo apt update
+sudo apt install -y python3-rpi.gpio python3-dotenv
+#sudo pipx ensurepath --global
+#sudo pipx ensurepath --prepend
+#sudo pipx install discord_webhook
+
 # Create a non-login user with Raspbian security defaults
 if ! id "$USER_NAME" &>/dev/null; then
     echo "Creating non-login user: $USER_NAME"
