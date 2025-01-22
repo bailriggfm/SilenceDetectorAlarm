@@ -31,6 +31,15 @@ else
     exit 1
 fi
 
+# Copy the .env file from the same directory as this install script
+if [ -f "$INSTALL_SCRIPT_DIR/.env" ]; then
+    echo "Copying .env file to $ENV_FILE_PATH"
+    sudo install -m 640 -o "$USER_NAME" -g "$USER_NAME" "$INSTALL_SCRIPT_DIR/.env" "$ENV_FILE_PATH"
+else
+    echo "Error: .env file not found in $INSTALL_SCRIPT_DIR"
+    exit 1
+fi
+
 # Create the systemd service file
 cat <<EOF | sudo tee "$SERVICE_FILE_PATH" > /dev/null
 [Unit]
