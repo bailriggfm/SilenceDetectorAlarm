@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 import requests
+import json
 
 # Load environment variables from .env file
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -122,21 +123,28 @@ def send_dashboard(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, 
 
 # GPIO setup
 GPIO_PIN = 10
+NEW_GPIO_PINS = [17, 27, 22, 5, 6, 13]  # Add your new GPIO pins here
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Use PUD_UP since the relay is normally open
+for pin in NEW_GPIO_PINS:
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Setup for new GPIO pins
 
 # Debounce settings
 debounce_time = 0.3  # 300ms debounce
 last_state = GPIO.HIGH
 last_event_time = 0
 
+# Initialize states for new GPIO pins
+last_states_new_gpio = {pin: GPIO.input(pin) for pin in NEW_GPIO_PINS}
+
 try:
-    print_ok("Monitoring GPIO pin for state changes...")
+    print_ok("Monitoring GPIO pins for state changes...")
     while True:
+        # Monitor the original GPIO pin (GPIO_PIN)
         current_state = GPIO.input(GPIO_PIN)
         current_time = time.time()
 
-        # Check for state changes with debounce
+        # Check for state changes with debounce on the original GPIO pin
         if current_state != last_state and (current_time - last_event_time) > debounce_time:
             if current_state == GPIO.LOW:  # Relay activated
                 send_pushover("Silence Detector Reset")
@@ -153,8 +161,19 @@ try:
                     footer="Please check the correct studio is on air and myriad is functioning correctly",
                     color=0xf71202
                 )
+            # Call send_dashboard for the original GPIO pin state change (to be fixed later)
+            send_dashboard("onAirStudio", "studioAMicLive", "studioBMicLive", "studioCMicLive", "onSilence")
+
             last_event_time = current_time
             last_state = current_state
+
+        # Monitor the new GPIO pins
+        for pin in NEW_GPIO_PINS:
+            current_pin_state = GPIO.input(pin)
+            if current_pin_state != last_states_new_gpio[pin]:
+                # Call send_dashboard for new GPIO pin state change (to be fixed later)
+                send_dashboard("onAirStudio", "studioAMicLive", "studioBMicLive", "studioCMicLive", "onSilence")
+                last_states_new_gpio[pin] = current_pin_state
 
         time.sleep(0.05)  # Small delay to prevent excessive CPU usage
 
