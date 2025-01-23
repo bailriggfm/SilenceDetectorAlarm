@@ -3,11 +3,10 @@
 # Define variables
 USER_NAME="SilenceUser"
 SERVICE_NAME="SilenceDetector"
-PYTHON_SCRIPT_PATH="/opt/$SERVICE_NAME/SilenceDetector.py"
+PACKAGE_NAME="BFM_Silence_Detector"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 VENV_DIR="/opt/$SERVICE_NAME/venv"  # Directory where the virtual environment will be created
-REQUIREMENTS_FILE="/opt/$SERVICE_NAME/requirements.txt"
-SCRIPT_DIR="$(dirname $PYTHON_SCRIPT_PATH)"
+SRC_SCRIPT_DIR="$(dirname "$0")"
 
 echo "Installing dependencies"
 
@@ -26,49 +25,48 @@ fi
 # Add the user to the gpio group for GPIO access
 sudo usermod -aG gpio "$USER_NAME"
 
-# Ensure the target directory exists
-sudo mkdir -p "$SCRIPT_DIR"
-
 # Create the virtual environment
 echo "Creating virtual environment in $VENV_DIR"
 sudo mkdir -p "$VENV_DIR"
 sudo python3 -m venv "$VENV_DIR"
 
-# Install dependencies inside the virtual environment
+# Install or upgrade pip in the virtual environment
 echo "Installing Python dependencies in virtual environment"
 sudo "$VENV_DIR/bin/pip" install --upgrade pip
-sudo "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS_FILE"
 
-# Copy the Python script from the same directory as this install script
-INSTALL_SCRIPT_DIR="$(dirname "$0")"
-if [ -f "$INSTALL_SCRIPT_DIR/SilenceDetector.py" ]; then
-    echo "Copying Python script to $PYTHON_SCRIPT_PATH"
-    sudo install -m 750 -o "$USER_NAME" -g "$USER_NAME" "$INSTALL_SCRIPT_DIR/SilenceDetector.py" "$PYTHON_SCRIPT_PATH"
+# Install your Python package
+if [ -f "$SRC_SCRIPT_DIR/setup.py" ]; then
+    echo "Installing Python package from setup.py"
+    sudo "$VENV_DIR/bin/pip" install "$SRC_SCRIPT_DIR"
+elif ls "$SRC_SCRIPT_DIR"/*.whl 1> /dev/null 2>&1; then
+    echo "Installing Python package from wheel file"
+    sudo "$VENV_DIR/bin/pip" install "$SRC_SCRIPT_DIR"/*.whl
 else
-    echo "Error: Python script 'SilenceDetector.py' not found in $INSTALL_SCRIPT_DIR"
+    echo "Error: No setup.py or .whl file found in $SRC_SCRIPT_DIR"
     exit 1
 fi
 
 # Copy the .env file from the same directory as this install script
-if [ -f "$INSTALL_SCRIPT_DIR/.env" ]; then
-    echo "Copying .env file to $SCRIPT_DIR"
-    sudo install -m 640 -o "$USER_NAME" -g "$USER_NAME" "$INSTALL_SCRIPT_DIR/.env" "$SCRIPT_DIR/.env"
+if [ -f "$SRC_SCRIPT_DIR/.env" ]; then
+    echo "Copying .env file to $VENV_DIR"
+    sudo install -m 640 -o "$USER_NAME" -g "$USER_NAME" "$SRC_SCRIPT_DIR/.env" "$VENV_DIR/.env"
 else
-    echo "Error: .env file not found in $INSTALL_SCRIPT_DIR"
+    echo "Error: .env file not found in $SRC_SCRIPT_DIR"
     exit 1
 fi
 
 # Create the systemd service file
 cat <<EOF | sudo tee "$SERVICE_FILE_PATH" > /dev/null
 [Unit]
-Description=Run Python Script as $USER_NAME
+Description=Run Python Package as $USER_NAME
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=$USER_NAME
-ExecStart=$VENV_DIR/bin/python3 "$PYTHON_SCRIPT_PATH"
+WorkingDirectory=$VENV_DIR
+ExecStart=$VENV_DIR/bin/python3 -m $PACKAGE_NAME
 Restart=always
 RestartSec=10
 
