@@ -8,7 +8,7 @@ SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 
 echo Install depends
 sudo apt update
-sudo apt install -y python3-rpi.gpio python3-dotenv
+sudo apt install -y python3-rpi.gpio python3-dotenv python3-requests
 #sudo pipx ensurepath --global
 #sudo pipx ensurepath --prepend
 #sudo pipx install discord_webhook
@@ -16,7 +16,7 @@ sudo apt install -y python3-rpi.gpio python3-dotenv
 # Create a non-login user with Raspbian security defaults
 if ! id "$USER_NAME" &>/dev/null; then
     echo "Creating non-login user: $USER_NAME"
-    sudo useradd --system --no-create-home --shell /usr/sbin/nologin "$USER_NAME"
+    sudo useradd --system --shell /usr/sbin/nologin "$USER_NAME"
 else
     echo "User $USER_NAME already exists."
 fi

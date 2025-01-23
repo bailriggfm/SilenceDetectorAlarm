@@ -2,10 +2,10 @@ import time
 import urllib.parse
 import http.client
 import RPi.GPIO as GPIO
-#from discord_webhook import DiscordWebhook, DiscordEmbed
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
+import requests
 
 # Load environment variables from .env file
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +19,7 @@ else:
 webhookURL = os.getenv("WEBHOOK_URL")
 pushoverToken = os.getenv("PUSHOVER_TOKEN")
 pushoverUser = os.getenv("PUSHOVER_USER")
+dashboardURL = os.getenv("DASHBOARD_URL")
 
 if not webhookURL or not pushoverToken or not pushoverUser:
     raise ValueError("Error: Required environment variables are not set in .env file")
@@ -49,16 +50,75 @@ def send_pushover(message):
     conn.getresponse()
     print_ok("Pushover notification sent!")
 
-#def send_discord_webhook(title, message, colour):
-#    webhook = DiscordWebhook(url=webhookURL, rate_limit_retry=True)
-#    embed = DiscordEmbed(title=title, description=message, color=colour)
-#    embed.set_footer(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # Timestamp
-#    webhook.add_embed(embed)
-#    response = webhook.execute()
-#    if response.status_code == 200:
-#        print_ok("Discord notification sent!")
-#    else:
-#        print_error(f"Failed to send Discord notification. Status: {response.status_code}")
+def send_discord_webhook(message, title=None, color=None, footer_text=None):
+    # Get the webhook URL from environment variable
+    webhook_url = os.getenv('WEBHOOK_URL')
+
+    if not webhook_url:
+        raise ValueError("WEBHOOK_URL environment variable is not set")
+
+    # Get the current timestamp in ISO 8601 format
+    timestamp = datetime.now(timezone.utc).isoformat()  # UTC time in ISO 8601 format
+
+    # Prepare the base payload
+    data = {
+        "content": "",  # Empty content as the embed will contain the message
+        "embeds": [{
+            "description": message,
+            "timestamp": timestamp  # Set the timestamp to current time
+        }]
+    }
+
+    # Add title if provided
+    if title:
+        data["embeds"][0]["title"] = title
+
+    # Add color if provided
+    if color:
+        data["embeds"][0]["color"] = color
+
+    # Add footer if provided
+    if footer_text:
+        data["embeds"][0]["footer"] = {
+            "text": footer_text
+        }
+
+    # Send the request to the Discord webhook
+    response = requests.post(webhook_url, json=data)
+
+    # Check if the request was successful
+    if response.status_code == 204:
+        print("Message successfully sent!")
+    else:
+        print(f"Failed to send message. Status code: {response.status_code}")
+        print(response.text)
+
+def send_dashboard(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
+    # Prepare the JSON payload
+    data = {
+        "onAirStudio": onAirStudio,
+        "studioAMicLive": studioAMicLive,
+        "studioBMicLive": studioBMicLive,
+        "studioCMicLive": studioCMicLive,
+        "onSilence": onSilence
+    }
+
+    # Establish connection to the dashboard URL
+    conn = http.client.HTTPSConnection(dashboardURL + ":443")
+    # Send the POST request with the JSON data
+    conn.request("POST", "/1/messages.json",
+                 body=json.dumps(data),
+                 headers={"Content-Type": "application/json"})
+    # Get the response
+    response = conn.getresponse()
+
+    # Check if the request was successful
+    if response.status == 200:
+        print("Pushover notification sent successfully!")
+    else:
+        print(f"Failed to send notification. Status code: {response.status}")
+    # Close the connection
+    conn.close()
 
 # GPIO setup
 GPIO_PIN = 10
@@ -79,21 +139,20 @@ try:
         # Check for state changes with debounce
         if current_state != last_state and (current_time - last_event_time) > debounce_time:
             if current_state == GPIO.LOW:  # Relay activated
-                send_pushover("Relay Activated: Circuit Closed")
-                # Uncomment and update the following if using Discord webhook
-                # send_discord_webhook(
-                #     "Relay Activated",
-                #     "The relay circuit is now closed.",
-                #     "#f71202"
-                # )
+                send_pushover("Silence Detector Reset")
+                send_discord_webhook(
+                    "Silence Detector Reset.",
+                    title="Silence Detector",
+                    color=0x03f813
+                )
             else:  # Relay deactivated
-                send_pushover("Relay Deactivated: Circuit Open")
-                # Uncomment and update the following if using Discord webhook
-                # send_discord_webhook(
-                #     "Relay Deactivated",
-                #     "The relay circuit is now open.",
-                #     "#03f813"
-                # )
+                send_pushover("Silence Detector Tripped")
+                send_discord_webhook(
+                    "Silence Detector Tripped.",
+                    title="Silence Detector",
+                    footer="Please check the correct studio is on air and myriad is functioning correctly",
+                    color=0xf71202
+                )
             last_event_time = current_time
             last_state = current_state
 
