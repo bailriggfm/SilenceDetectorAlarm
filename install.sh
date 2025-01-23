@@ -5,15 +5,17 @@ USER_NAME="SilenceUser"
 SERVICE_NAME="SilenceDetector"
 PYTHON_SCRIPT_PATH="/opt/$SERVICE_NAME/SilenceDetector.py"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
+VENV_DIR="/opt/$SERVICE_NAME/venv"  # Directory where the virtual environment will be created
+REQUIREMENTS_FILE="/opt/$SERVICE_NAME/requirements.txt"
+SCRIPT_DIR="$(dirname $PYTHON_SCRIPT_PATH)"
 
-echo Install depends
+echo "Installing dependencies"
+
+# Install system dependencies
 sudo apt update
-sudo apt install -y python3-rpi.gpio python3-dotenv python3-requests
-#sudo pipx ensurepath --global
-#sudo pipx ensurepath --prepend
-#sudo pipx install discord_webhook
+sudo apt install -y python3-venv python3-pip
 
-# Create a non-login user with Raspbian security defaults
+# Create a non-login user with Raspbian security defaults if it doesn't exist
 if ! id "$USER_NAME" &>/dev/null; then
     echo "Creating non-login user: $USER_NAME"
     sudo useradd --system --shell /usr/sbin/nologin "$USER_NAME"
@@ -25,8 +27,17 @@ fi
 sudo usermod -aG gpio "$USER_NAME"
 
 # Ensure the target directory exists
-SCRIPT_DIR="$(dirname $PYTHON_SCRIPT_PATH)"
 sudo mkdir -p "$SCRIPT_DIR"
+
+# Create the virtual environment
+echo "Creating virtual environment in $VENV_DIR"
+sudo mkdir -p "$VENV_DIR"
+sudo python3 -m venv "$VENV_DIR"
+
+# Install dependencies inside the virtual environment
+echo "Installing Python dependencies in virtual environment"
+sudo "$VENV_DIR/bin/pip" install --upgrade pip
+sudo "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS_FILE"
 
 # Copy the Python script from the same directory as this install script
 INSTALL_SCRIPT_DIR="$(dirname "$0")"
@@ -40,8 +51,8 @@ fi
 
 # Copy the .env file from the same directory as this install script
 if [ -f "$INSTALL_SCRIPT_DIR/.env" ]; then
-    echo "Copying .env file to $ENV_FILE_PATH"
-    sudo install -m 640 -o "$USER_NAME" -g "$USER_NAME" "$INSTALL_SCRIPT_DIR/.env" "$ENV_FILE_PATH"
+    echo "Copying .env file to $SCRIPT_DIR"
+    sudo install -m 640 -o "$USER_NAME" -g "$USER_NAME" "$INSTALL_SCRIPT_DIR/.env" "$SCRIPT_DIR/.env"
 else
     echo "Error: .env file not found in $INSTALL_SCRIPT_DIR"
     exit 1
@@ -57,7 +68,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=$USER_NAME
-ExecStart=/usr/bin/python3 "$PYTHON_SCRIPT_PATH"
+ExecStart=$VENV_DIR/bin/python3 "$PYTHON_SCRIPT_PATH"
 Restart=always
 RestartSec=10
 

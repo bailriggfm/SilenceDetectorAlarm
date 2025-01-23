@@ -1,0 +1,58 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+env/
+venv/
+ENV/
+.VENV/
+
+# Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Python test results
+htmlcov/
+.tox/
+.coverage
+.cache
+.nosetests.xml
+pytest_cache/
+junit-*.xml
+
+# Logs and debug files
+*.log
+*.bak
+*.tmp
+*.stacktrace
+
+# Ignore generated configuration files
+*.ini
+*.cfg
+*.toml
+*.yaml
+
+# Ignore dependency directories
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# Ignore compiled libraries
+*.so
+*.dll
+*.dylib
+
+# Ignore generated documentation
+docs/_build/
+
+# RPi.GPIO specific
+*.gpio
