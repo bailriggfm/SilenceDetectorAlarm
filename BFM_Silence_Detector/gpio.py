@@ -99,7 +99,6 @@ def monitor_gpio():
                 current_pin_state = GPIO.input(pin)
                 current_time = time.time()
                 if current_pin_state != last_states_OnAir_MicLive[pin] and (current_time - last_event_times_OnAir_MicLive[pin]) > debounce_time:
-                    send_dashboard("onAirStudio", "studioAMicLive", "studioBMicLive", "studioCMicLive", "onSilence")
                     last_states_OnAir_MicLive[pin] = current_pin_state
                     last_event_times_OnAir_MicLive[pin] = current_time
 
