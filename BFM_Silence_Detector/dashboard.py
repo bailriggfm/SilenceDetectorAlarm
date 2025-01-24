@@ -17,12 +17,13 @@
 
 import http.client
 import json
+import RPi.GPIO as GPIO
 from config import load_config
 
 # Initialize environment variable
-_, _, _, dashboard_url = load_config()
+_, _, _, dashboard_host, dashboard_url = load_config()
 
-def send_dashboard(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
+def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
     # Prepare the JSON payload
     data = {
         # as 'Studio1' or 'Studio2' or 'Studio3'
@@ -35,9 +36,9 @@ def send_dashboard(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, 
     }
 
     # Establish connection to the dashboard URL
-    conn = http.client.HTTPSConnection(dashboard_url + ":443")
+    conn = http.client.HTTPSConnection(dashboard_host + ":443")
     # Send the POST request with the JSON data
-    conn.request("POST", "/1/messages.json",
+    conn.request("POST", dashboard_url,
                  body=json.dumps(data),
                  headers={"Content-Type": "application/json"})
     # Get the response
@@ -50,3 +51,23 @@ def send_dashboard(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, 
         print(f"Failed to send notification. Status code: {response.status}")
     # Close the connection
     conn.close()
+
+def send_dashboard(studio1OnAir, studio2OnAir, studio3OnAir, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
+    # Directly translate GPIO values to True/False with inverted logic
+    studio1OnAir = (studio1OnAir == GPIO.LOW)
+    studio2OnAir = (studio2OnAir == GPIO.LOW)
+    studio3OnAir = (studio3OnAir == GPIO.LOW)
+    studioAMicLive = (studioAMicLive == GPIO.LOW)
+    studioBMicLive = (studioBMicLive == GPIO.LOW)
+    studioCMicLive = (studioCMicLive == GPIO.LOW)
+    onSilence = (onSilence == GPIO.HIGH)
+
+    onAirStudio = ""
+    if (studio1OnAir) and (not studio2OnAir) and (not studio3OnAir):
+        onAirStudio = "Studio1"
+    if (not studio1OnAir) and (studio2OnAir) and (not studio3OnAir):
+        onAirStudio = "Studio2"
+    if (not studio1OnAir) and (not studio2OnAir) and (studio3OnAir):
+        onAirStudio = "Studio3"
+
+    send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence)

@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from config import load_config
 
 # Initialize environment variables
-webhook_url, pushover_token, pushover_user, _ = load_config()
+webhook_url, pushover_token, pushover_user, _, _ = load_config()
 
 # for printing error messages.
 class PrintColours:

@@ -78,10 +78,21 @@ def monitor_gpio():
                         footer="Please check the correct studio is on air and myriad is functioning correctly",
                         color=0xf71202
                     )
-                send_dashboard("onAirStudio", "studioAMicLive", "studioBMicLive", "studioCMicLive", "onSilence")
 
                 last_event_time = current_time
                 silence_last_state = current_state
+
+                # Update the dashboard
+                send_dashboard(
+                    last_states_OnAir_MicLive[0],
+                    last_states_OnAir_MicLive[1],
+                    last_states_OnAir_MicLive[2],
+                    last_states_OnAir_MicLive[3],
+                    last_states_OnAir_MicLive[4],
+                    last_states_OnAir_MicLive[5],
+                    silence_last_state
+                )
+
 
             # Monitor the OnAir and MicLive GPIO pins with debounce
             for pin in OnAir_MicLive_GPIO_Pins:
@@ -91,6 +102,17 @@ def monitor_gpio():
                     send_dashboard("onAirStudio", "studioAMicLive", "studioBMicLive", "studioCMicLive", "onSilence")
                     last_states_OnAir_MicLive[pin] = current_pin_state
                     last_event_times_OnAir_MicLive[pin] = current_time
+
+                    # Update the dashboard
+                    send_dashboard(
+                        last_states_OnAir_MicLive[0],
+                        last_states_OnAir_MicLive[1],
+                        last_states_OnAir_MicLive[2],
+                        last_states_OnAir_MicLive[3],
+                        last_states_OnAir_MicLive[4],
+                        last_states_OnAir_MicLive[5],
+                        silence_last_state
+                    )
 
             time.sleep(0.05)  # Small delay to prevent excessive CPU usage
 
