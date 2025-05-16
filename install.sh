@@ -5,6 +5,7 @@ USER_NAME="SilenceUser"
 SERVICE_NAME="SilenceDetector"
 PYTHON_SCRIPT_PATH="/opt/$SERVICE_NAME/SilenceDetector.py"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
+ENV_FILE_PATH="/opt/$SERVICE_NAME/.env"
 
 echo Install depends
 sudo apt update
