@@ -20,13 +20,21 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 def load_config():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    dotenv_path = os.path.join(script_dir, ".env")
+    # Check multiple possible locations for .env file
+    potential_paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),  # Package directory
+        os.path.join(os.getcwd(), ".env"),  # Working directory
+        os.path.join(os.path.expanduser("~"), ".env"),  # Home directory
+        "/opt/SilenceDetector/venv/.env"  # Installation directory
+    ]
 
-    if os.path.exists(dotenv_path):
-        load_dotenv(dotenv_path)
+    for dotenv_path in potential_paths:
+        if os.path.exists(dotenv_path):
+            print(f"Loading configuration from {dotenv_path}")
+            load_dotenv(dotenv_path)
+            break
     else:
-        raise FileNotFoundError(f"Error: .env file not found in {dotenv_path}")
+        print("Warning: No .env file found in any of the expected locations")
 
     # Environment variables for webhook and Pushover
     webhook_url = os.getenv("WEBHOOK_URL")

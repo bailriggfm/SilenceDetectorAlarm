@@ -51,9 +51,14 @@ def monitor_gpio():
     silence_last_state = GPIO.HIGH
     last_event_time = 0
 
-    # Initialize states for new GPIO pins
-    last_states_OnAir_MicLive = {pin: GPIO.input(pin) for pin in OnAir_MicLive_GPIO_Pins}
-    last_event_times_OnAir_MicLive = {pin: 0 for pin in OnAir_MicLive_GPIO_Pins}  # Track debounce times
+    # Initialize states for new GPIO pins - USE INDICES INSTEAD OF PIN NUMBERS
+    last_states_OnAir_MicLive = {}
+    last_event_times_OnAir_MicLive = {}
+
+    # Initialize with indices
+    for idx, pin in enumerate(OnAir_MicLive_GPIO_Pins):
+        last_states_OnAir_MicLive[idx] = GPIO.input(pin)
+        last_event_times_OnAir_MicLive[idx] = 0
 
     try:
         print("Monitoring GPIO pins for state changes...")
@@ -98,10 +103,10 @@ def monitor_gpio():
             for pin_index, pin in enumerate(OnAir_MicLive_GPIO_Pins):
                 current_pin_state = GPIO.input(pin)
                 current_time = time.time()
-                if current_pin_state != last_states_OnAir_MicLive[pin] and (current_time - last_event_times_OnAir_MicLive[pin]) > debounce_time:
+                if current_pin_state != last_states_OnAir_MicLive[pin_index] and (current_time - last_event_times_OnAir_MicLive[pin_index]) > debounce_time:
                     # Update state tracking
-                    last_states_OnAir_MicLive[pin] = current_pin_state
-                    last_event_times_OnAir_MicLive[pin] = current_time
+                    last_states_OnAir_MicLive[pin_index] = current_pin_state
+                    last_event_times_OnAir_MicLive[pin_index] = current_time
 
                     # Generate status message for notification
                     status_message = get_status_message(pin_index, current_pin_state)
