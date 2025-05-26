@@ -25,9 +25,9 @@ SilenceDetector_PIN = 10
 Studio_1_OnAir_PIN = 17
 Studio_2_OnAir_PIN = 27
 Studio_3_OnAir_PIN = 22
-Studio_1_MicLive_PIN = 5
-Studio_2_MicLive_PIN = 6
-Studio_3_MicLive_PIN = 13
+Studio_1_MicLive_PIN = 23
+Studio_2_MicLive_PIN = 24
+Studio_3_MicLive_PIN = 25
 
 # Define a list of the new GPIO pin constants
 OnAir_MicLive_GPIO_Pins = [
