@@ -19,7 +19,7 @@ import http.client
 import urllib.parse
 import requests
 from datetime import datetime, timezone
-from config import load_config
+from .config import load_config
 
 # Initialize environment variables
 webhook_url, pushover_token, pushover_user, _, _, pushover_token_onair, pushover_user_onair = load_config()

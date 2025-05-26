@@ -18,7 +18,7 @@
 import http.client
 import json
 import RPi.GPIO as GPIO
-from config import load_config
+from .config import load_config
 
 # Initialize environment variable
 _, _, _, dashboard_host, dashboard_url, _, _ = load_config()

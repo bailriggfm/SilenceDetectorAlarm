@@ -17,8 +17,8 @@
 
 import time
 import RPi.GPIO as GPIO
-from notification import send_pushover, send_discord_webhook, send_pushover_onair, get_status_message
-from dashboard import send_dashboard
+from .notification import send_pushover, send_discord_webhook, send_pushover_onair, get_status_message
+from .dashboard import send_dashboard
 
 # Named constants for our GPIO pins
 SilenceDetector_PIN = 10
