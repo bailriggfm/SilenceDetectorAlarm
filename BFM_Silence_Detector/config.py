@@ -34,8 +34,10 @@ def load_config():
     pushover_user = os.getenv("PUSHOVER_USER")
     dashboard_host = os.getenv("DASHBOARD_HOST")
     dashboard_url = os.getenv("DASHBOARD_URL")
+    pushover_token_onair = os.getenv("PUSHOVER_TOKEN_ONAIR")
+    pushover_user_onair = os.getenv("PUSHOVER_USER_ONAIR")
 
     if not webhook_url or not pushover_token or not pushover_user or not dashboard_url:
         raise ValueError("Error: Required environment variables are not set in .env file")
 
-    return webhook_url, pushover_token, pushover_user, dashboard_host, dashboard_url
+    return webhook_url, pushover_token, pushover_user, dashboard_host, dashboard_url, pushover_token_onair, pushover_user_onair

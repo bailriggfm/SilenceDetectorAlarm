@@ -21,7 +21,7 @@ import RPi.GPIO as GPIO
 from config import load_config
 
 # Initialize environment variable
-_, _, _, dashboard_host, dashboard_url = load_config()
+_, _, _, dashboard_host, dashboard_url, _, _ = load_config()
 
 def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
     # Prepare the JSON payload

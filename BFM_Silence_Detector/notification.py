@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from config import load_config
 
 # Initialize environment variables
-webhook_url, pushover_token, pushover_user, _, _ = load_config()
+webhook_url, pushover_token, pushover_user, _, _, pushover_token_onair, pushover_user_onair = load_config()
 
 # for printing error messages.
 class PrintColours:
@@ -51,6 +51,45 @@ def send_pushover(message):
     }), { "Content-type": "application/x-www-form-urlencoded" })
     conn.getresponse()
     print_ok("Pushover notification sent!")
+
+# Send a pushover notification using OnAir credentials.
+def send_pushover_onair(message):
+    conn = http.client.HTTPSConnection("api.pushover.net:443")
+    conn.request("POST", "/1/messages.json",
+    urllib.parse.urlencode({
+        "token": pushover_token_onair,
+        "user": pushover_user_onair,
+        "message": message,
+        "priority": "-2",
+        "tags": "OnAirStatus"
+    }), { "Content-type": "application/x-www-form-urlencoded" })
+    conn.getresponse()
+    print_ok("OnAir Pushover notification sent!")
+
+# Helper functions to generate status messages
+def get_studio_name(pin_index):
+    studio_map = {
+        0: "Studio 1",
+        1: "Studio 2",
+        2: "Studio 3",
+        3: "Studio 1",
+        4: "Studio 2",
+        5: "Studio 3"
+    }
+    return studio_map.get(pin_index, "Unknown Studio")
+
+def get_status_type(pin_index):
+    if pin_index <= 2:
+        return "On Air"
+    else:
+        return "Mic Live"
+
+def get_status_message(pin_index, state):
+    studio = get_studio_name(pin_index)
+    status_type = get_status_type(pin_index)
+    status = "OFF" if state == 1 else "ON"  # GPIO.LOW (0) means ON, GPIO.HIGH (1) means OFF
+
+    return f"{studio} {status_type}: {status}"
 
 # Send a discord webhook message to our webhook.
 def send_discord_webhook(message, title=None, color=None, footer_text=None):

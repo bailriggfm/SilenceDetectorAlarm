@@ -17,7 +17,8 @@
 
 import time
 import RPi.GPIO as GPIO
-from notification import send_pushover, send_discord_webhook, send_dashboard
+from notification import send_pushover, send_discord_webhook, send_pushover_onair, get_status_message
+from dashboard import send_dashboard
 
 # Named constants for our GPIO pins
 SilenceDetector_PIN = 10
@@ -94,12 +95,19 @@ def monitor_gpio():
 
 
             # Monitor the OnAir and MicLive GPIO pins with debounce
-            for pin in OnAir_MicLive_GPIO_Pins:
+            for pin_index, pin in enumerate(OnAir_MicLive_GPIO_Pins):
                 current_pin_state = GPIO.input(pin)
                 current_time = time.time()
                 if current_pin_state != last_states_OnAir_MicLive[pin] and (current_time - last_event_times_OnAir_MicLive[pin]) > debounce_time:
+                    # Update state tracking
                     last_states_OnAir_MicLive[pin] = current_pin_state
                     last_event_times_OnAir_MicLive[pin] = current_time
+
+                    # Generate status message for notification
+                    status_message = get_status_message(pin_index, current_pin_state)
+
+                    # Send notification
+                    send_pushover_onair(status_message)
 
                     # Update the dashboard
                     send_dashboard(
