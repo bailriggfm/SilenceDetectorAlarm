@@ -73,9 +73,8 @@ def monitor_gpio():
                 else:  # Relay deactivated
                     send_pushover("Silence Detector Tripped")
                     send_discord_webhook(
-                        "Silence Detector Tripped.",
+                        "Silence Detector Tripped.\nPlease check the correct studio is on air and myriad is functioning correctly",
                         title="Silence Detector",
-                        footer="Please check the correct studio is on air and myriad is functioning correctly",
                         color=0xf71202
                     )
 
