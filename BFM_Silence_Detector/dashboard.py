@@ -24,33 +24,36 @@ from .config import load_config
 _, _, _, dashboard_host, dashboard_url, _, _ = load_config()
 
 def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
-    # Prepare the JSON payload
-    data = {
-        # as 'Studio1' or 'Studio2' or 'Studio3'
-        "onAirStudio": onAirStudio,
-        # As boolean
-        "studioAMicLive": studioAMicLive,
-        "studioBMicLive": studioBMicLive,
-        "studioCMicLive": studioCMicLive,
-        "onSilence": onSilence
-    }
+    try:
+        # Prepare the JSON payload
+        data = {
+            # as 'Studio1' or 'Studio2' or 'Studio3'
+            "onAirStudio": onAirStudio,
+            # As boolean
+            "studioAMicLive": studioAMicLive,
+            "studioBMicLive": studioBMicLive,
+            "studioCMicLive": studioCMicLive,
+            "onSilence": onSilence
+        }
 
-    # Establish connection to the dashboard URL
-    conn = http.client.HTTPSConnection(dashboard_host + ":443")
-    # Send the POST request with the JSON data
-    conn.request("POST", dashboard_url,
-                 body=json.dumps(data),
-                 headers={"Content-Type": "application/json"})
-    # Get the response
-    response = conn.getresponse()
+        # Establish connection to the dashboard URL
+        conn = http.client.HTTPSConnection(dashboard_host + ":443")
+        # Send the POST request with the JSON data
+        conn.request("POST", dashboard_url,
+                     body=json.dumps(data),
+                     headers={"Content-Type": "application/json"})
+        # Get the response
+        response = conn.getresponse()
 
-    # Check if the request was successful
-    if response.status == 200:
-        print("Dashboard data sent successfully!")
-    else:
-        print(f"Failed to send notification. Status code: {response.status}")
-    # Close the connection
-    conn.close()
+        # Check if the request was successful
+        if response.status == 200:
+            print("Dashboard data sent successfully!")
+        else:
+            print(f"Failed to send notification. Status code: {response.status}")
+        # Close the connection
+        conn.close()
+    except Exception as e:
+        print("An error occurred:", e)
 
 def send_dashboard(studio1OnAir, studio2OnAir, studio3OnAir, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
     # Directly translate GPIO values to True/False with inverted logic

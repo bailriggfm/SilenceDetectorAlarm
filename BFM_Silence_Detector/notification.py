@@ -38,33 +38,39 @@ def print_ok(message):
 
 # Send a pushover notification.
 def send_pushover(message):
-    conn = http.client.HTTPSConnection("api.pushover.net:443")
-    conn.request("POST", "/1/messages.json",
-    urllib.parse.urlencode({
-        "token": pushover_token,
-        "user": pushover_user,
-        "message": message,
-        "priority": "1",
-        "retry": "30",
-        "expire": "180",
-        "tags": "RelayStatusSystem"
-    }), { "Content-type": "application/x-www-form-urlencoded" })
-    conn.getresponse()
-    print_ok("Pushover notification sent!")
+    try:
+        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
+        urllib.parse.urlencode({
+            "token": pushover_token,
+            "user": pushover_user,
+            "message": message,
+            "priority": "1",
+            "retry": "30",
+            "expire": "180",
+            "tags": "RelayStatusSystem"
+        }), { "Content-type": "application/x-www-form-urlencoded" })
+        conn.getresponse()
+        print_ok("Pushover notification sent!")
+    except Exception as e:
+        print("An error occurred:", e)
 
 # Send a pushover notification using OnAir credentials.
 def send_pushover_onair(message):
-    conn = http.client.HTTPSConnection("api.pushover.net:443")
-    conn.request("POST", "/1/messages.json",
-    urllib.parse.urlencode({
-        "token": pushover_token_onair,
-        "user": pushover_user_onair,
-        "message": message,
-        "priority": "-2",
-        "tags": "OnAirStatus"
-    }), { "Content-type": "application/x-www-form-urlencoded" })
-    conn.getresponse()
-    print_ok("OnAir Pushover notification sent!")
+    try:
+        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
+        urllib.parse.urlencode({
+            "token": pushover_token_onair,
+            "user": pushover_user_onair,
+            "message": message,
+            "priority": "-2",
+            "tags": "OnAirStatus"
+        }), { "Content-type": "application/x-www-form-urlencoded" })
+        conn.getresponse()
+        print_ok("OnAir Pushover notification sent!")
+    except Exception as e:
+        print("An error occurred:", e)
 
 # Helper functions to generate status messages
 def get_studio_name(pin_index):
@@ -93,32 +99,35 @@ def get_status_message(pin_index, state):
 
 # Send a discord webhook message to our webhook.
 def send_discord_webhook(message, title=None, color=None, footer_text=None):
-    # Get the current timestamp in ISO 8601 format
-    timestamp = datetime.now(timezone.utc).isoformat()
+    try:
+        # Get the current timestamp in ISO 8601 format
+        timestamp = datetime.now(timezone.utc).isoformat()
 
-    # Prepare the base payload
-    data = {
-        "content": "",  # Empty content as the embed will contain the message
-        "embeds": [{
-            "description": message,
-            "timestamp": timestamp
-        }]
-    }
+        # Prepare the base payload
+        data = {
+            "content": "",  # Empty content as the embed will contain the message
+            "embeds": [{
+                "description": message,
+                "timestamp": timestamp
+            }]
+        }
 
-    # Add optional parameters to embed
-    if title:
-        data["embeds"][0]["title"] = title
-    if color:
-        data["embeds"][0]["color"] = color
-    if footer_text:
-        data["embeds"][0]["footer"] = {"text": footer_text}
+        # Add optional parameters to embed
+        if title:
+            data["embeds"][0]["title"] = title
+        if color:
+            data["embeds"][0]["color"] = color
+        if footer_text:
+            data["embeds"][0]["footer"] = {"text": footer_text}
 
-    # Send the request to the Discord webhook
-    response = requests.post(webhook_url, json=data)
+        # Send the request to the Discord webhook
+        response = requests.post(webhook_url, json=data)
 
-    # Check if the request was successful
-    if response.status_code == 204:
-        print("Message successfully sent!")
-    else:
-        print(f"Failed to send message. Status code: {response.status_code}")
-        print(response.text)
+        # Check if the request was successful
+        if response.status_code == 204:
+            print("Message successfully sent!")
+        else:
+            print(f"Failed to send message. Status code: {response.status_code}")
+            print(response.text)
+    except Exception as e:
+        print("An error occurred:", e)
