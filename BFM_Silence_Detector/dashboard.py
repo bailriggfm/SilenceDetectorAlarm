@@ -15,9 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import http.client
-import json
 import RPi.GPIO as GPIO
+import requests
 from .config import load_config
 
 # Initialize environment variable
@@ -36,27 +35,17 @@ def send_dashboard_to_server(onAirStudio, studioAMicLive, studioCMicLive, studio
             "onSilence": onSilence
         }
 
-        # Establish connection to the dashboard URL
-        conn = http.client.HTTPSConnection(dashboard_host + ":443")
-        # Send the POST request with the JSON data
-        conn.request("POST", dashboard_url,
-                     body=json.dumps(data),
-                     headers={"Content-Type": "application/json"})
-        # Get the response
-        response = conn.getresponse()
+        # Send the POST request with the JSON data using requests
+        url = f"{dashboard_host}{dashboard_url}"
+        response = requests.post(url, json=data, headers={"Content-Type": "application/json"}, timeout=10)
 
         # Check if the request was successful
-        if response.status == 200:
+        if response.status_code == 200:
             print("Dashboard data sent successfully!")
         else:
-            print(f"Failed to send notification. Status code: {response.status}")
+            print(f"Failed to send notification. Status code: {response.status_code}")
     except Exception as e:
         print("An error occurred:", e)
-    finally:
-        try:
-            conn.close()
-        except:
-            pass  # Already closed or never opened
 
 def send_dashboard(studioaOnAir, studiocOnAir, automationOnAir, studioAMicLive, studioCMicLive, studioBMicLive, onSilence):
     # Directly translate GPIO values to True/False with inverted logic

@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import http.client
-import urllib.parse
 import requests
 import threading
 from datetime import datetime, timezone
@@ -49,9 +47,7 @@ def send_pushover(message):
             print_error("Pushover credentials missing. Check your .env file.")
             return False
 
-        conn = http.client.HTTPSConnection("api.pushover.net:443", timeout=10)
-        conn.request("POST", "/1/messages.json",
-        urllib.parse.urlencode({
+        data = {
             "token": pushover_token,
             "user": pushover_user,
             "message": message,
@@ -59,25 +55,25 @@ def send_pushover(message):
             "retry": "30",
             "expire": "180",
             "tags": "RelayStatusSystem"
-        }), { "Content-type": "application/x-www-form-urlencoded" })
-        response = conn.getresponse()
-        if response.status >= 200 and response.status < 300:
+        }
+        response = requests.post(
+            "https://api.pushover.net/1/messages.json",
+            data=data,
+            headers={"Content-type": "application/x-www-form-urlencoded"},
+            timeout=10
+        )
+        if 200 <= response.status_code < 300:
             print_ok("Pushover notification sent!")
             return True
         else:
-            print_error(f"Pushover API error: {response.status} {response.reason}")
+            print_error(f"Pushover API error: {response.status_code} {response.reason}")
             return False
-    except http.client.HTTPException as e:
+    except requests.RequestException as e:
         print_error(f"HTTP error sending Pushover notification: {e}")
         return False
     except Exception as e:
         print_error(f"Error sending Pushover notification: {e}")
         return False
-    finally:
-        try:
-            conn.close()
-        except:
-            pass  # Already closed or never opened
 
 # Send a pushover notification using OnAir credentials.
 def send_pushover_onair(message):
@@ -86,33 +82,31 @@ def send_pushover_onair(message):
             print_error("OnAir Pushover credentials missing. Check your .env file.")
             return False
 
-        conn = http.client.HTTPSConnection("api.pushover.net:443", timeout=10)
-        conn.request("POST", "/1/messages.json",
-        urllib.parse.urlencode({
+        data = {
             "token": pushover_token_onair,
             "user": pushover_user_onair,
             "message": message,
             "priority": "-2",
             "tags": "OnAirStatus"
-        }), { "Content-type": "application/x-www-form-urlencoded" })
-        response = conn.getresponse()
-        if response.status >= 200 and response.status < 300:
+        }
+        response = requests.post(
+            "https://api.pushover.net/1/messages.json",
+            data=data,
+            headers={"Content-type": "application/x-www-form-urlencoded"},
+            timeout=10
+        )
+        if 200 <= response.status_code < 300:
             print_ok("OnAir Pushover notification sent!")
             return True
         else:
-            print_error(f"OnAir Pushover API error: {response.status} {response.reason}")
+            print_error(f"OnAir Pushover API error: {response.status_code} {response.reason}")
             return False
-    except http.client.HTTPException as e:
+    except requests.RequestException as e:
         print_error(f"HTTP error sending OnAir Pushover notification: {e}")
         return False
     except Exception as e:
         print_error(f"Error sending OnAir Pushover notification: {e}")
         return False
-    finally:
-        try:
-            conn.close()
-        except:
-            pass  # Already closed or never opened
 
 # Helper functions to generate status messages
 def get_studio_name(pin_index):
