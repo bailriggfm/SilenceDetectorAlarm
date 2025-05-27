@@ -47,8 +47,8 @@ def setup_gpio():
 
 def monitor_gpio():
     # Debounce settings
-    debounce_time = 0.1  # 100ms debounce
-    silence_last_state = GPIO.HIGH
+    debounce_time = 0.08  # 80ms debounce
+    silence_last_state = GPIO.LOW
     last_event_time = 0
 
     # Initialize states for new GPIO pins - USE INDICES INSTEAD OF PIN NUMBERS
@@ -62,6 +62,7 @@ def monitor_gpio():
 
     try:
         print("Monitoring GPIO pins for state changes...")
+        send_notification_async(send_pushover, "Silence Detector Script Started")
         while True:
             # Monitor the original GPIO pin (SilenceDetector_PIN)
             current_state = GPIO.input(SilenceDetector_PIN)
