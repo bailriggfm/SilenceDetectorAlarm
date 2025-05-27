@@ -117,12 +117,12 @@ def send_pushover_onair(message):
 # Helper functions to generate status messages
 def get_studio_name(pin_index):
     studio_map = {
-        0: "Studio 1",
-        1: "Studio 2",
-        2: "Studio 3",
-        3: "Studio 1",
-        4: "Studio 2",
-        5: "Studio 3"
+        0: "Studio A",
+        1: "Studio C",
+        2: "Automation",
+        3: "Studio A",
+        4: "Studio C",
+        5: "Studio B"
     }
     return studio_map.get(pin_index, "Unknown Studio")
 

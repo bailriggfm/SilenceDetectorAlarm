@@ -23,16 +23,16 @@ from .config import load_config
 # Initialize environment variable
 _, _, _, dashboard_host, dashboard_url, _, _ = load_config()
 
-def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
+def send_dashboard_to_server(onAirStudio, studioAMicLive, studioCMicLive, studioBMicLive, onSilence):
     try:
         # Prepare the JSON payload
         data = {
-            # as 'Studio1' or 'Studio2' or 'Studio3'
+            # as 'StudioA' or 'StudioB' or 'StudioC'
             "onAirStudio": onAirStudio,
             # As boolean
             "studioAMicLive": studioAMicLive,
-            "studioBMicLive": studioBMicLive,
             "studioCMicLive": studioCMicLive,
+            "studioBMicLive": studioBMicLive,
             "onSilence": onSilence
         }
 
@@ -58,22 +58,22 @@ def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studio
         except:
             pass  # Already closed or never opened
 
-def send_dashboard(studio1OnAir, studio2OnAir, studio3OnAir, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
+def send_dashboard(studioaOnAir, studiocOnAir, automationOnAir, studioAMicLive, studioCMicLive, studioBMicLive, onSilence):
     # Directly translate GPIO values to True/False with inverted logic
-    studio1OnAir = (studio1OnAir == GPIO.LOW)
-    studio2OnAir = (studio2OnAir == GPIO.LOW)
-    studio3OnAir = (studio3OnAir == GPIO.LOW)
+    studioaOnAir = (studioaOnAir == GPIO.LOW)
+    studiocOnAir = (studiocOnAir == GPIO.LOW)
+    automationOnAir = (automationOnAir == GPIO.LOW)
     studioAMicLive = (studioAMicLive == GPIO.LOW)
-    studioBMicLive = (studioBMicLive == GPIO.LOW)
     studioCMicLive = (studioCMicLive == GPIO.LOW)
+    studioBMicLive = (studioBMicLive == GPIO.LOW)
     onSilence = (onSilence == GPIO.HIGH)
 
     onAirStudio = ""
-    if (studio1OnAir) and (not studio2OnAir) and (not studio3OnAir):
-        onAirStudio = "Studio1"
-    if (not studio1OnAir) and (studio2OnAir) and (not studio3OnAir):
-        onAirStudio = "Studio2"
-    if (not studio1OnAir) and (not studio2OnAir) and (studio3OnAir):
-        onAirStudio = "Studio3"
+    if (studioaOnAir) and (not studiocOnAir) and (not automationOnAir):
+        onAirStudio = "StudioA"
+    if (not studioaOnAir) and (studiocOnAir) and (not automationOnAir):
+        onAirStudio = "StudioC"
+    if (not studioaOnAir) and (not studiocOnAir) and (automationOnAir):
+        onAirStudio = "Automation"
 
-    send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studioCMicLive, onSilence)
+    send_dashboard_to_server(onAirStudio, studioAMicLive, studioCMicLive, studioBMicLive, onSilence)

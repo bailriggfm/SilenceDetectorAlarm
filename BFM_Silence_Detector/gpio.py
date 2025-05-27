@@ -22,21 +22,21 @@ from .dashboard import send_dashboard
 
 # Named constants for our GPIO pins
 SilenceDetector_PIN = 10
-Studio_1_OnAir_PIN = 17
-Studio_2_OnAir_PIN = 27
-Studio_3_OnAir_PIN = 22
-Studio_1_MicLive_PIN = 23
-Studio_2_MicLive_PIN = 24
-Studio_3_MicLive_PIN = 25
+Studio_A_OnAir_PIN = 17
+Studio_C_OnAir_PIN = 27
+Automation_OnAir_PIN = 22
+Studio_A_MicLive_PIN = 23
+Studio_C_MicLive_PIN = 24
+Studio_B_MicLive_PIN = 25
 
 # Define a list of the new GPIO pin constants
 OnAir_MicLive_GPIO_Pins = [
-    Studio_1_OnAir_PIN,
-    Studio_2_OnAir_PIN,
-    Studio_3_OnAir_PIN,
-    Studio_1_MicLive_PIN,
-    Studio_2_MicLive_PIN,
-    Studio_3_MicLive_PIN
+    Studio_A_OnAir_PIN,
+    Studio_C_OnAir_PIN,
+    Automation_OnAir_PIN,
+    Studio_A_MicLive_PIN,
+    Studio_C_MicLive_PIN,
+    Studio_B_MicLive_PIN
 ]
 
 def setup_gpio():
