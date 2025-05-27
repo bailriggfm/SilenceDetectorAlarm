@@ -27,7 +27,7 @@ def send_dashboard_to_server(onAirStudio, studioAMicLive, studioCMicLive, studio
     try:
         # Prepare the JSON payload
         data = {
-            # as 'StudioA' or 'StudioB' or 'StudioC'
+            # as 'StudioA' or 'StudioC' or 'Automation'
             "onAirStudio": onAirStudio,
             # As boolean
             "studioAMicLive": studioAMicLive,
