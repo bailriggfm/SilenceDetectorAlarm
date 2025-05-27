@@ -50,10 +50,13 @@ def send_dashboard_to_server(onAirStudio, studioAMicLive, studioBMicLive, studio
             print("Dashboard data sent successfully!")
         else:
             print(f"Failed to send notification. Status code: {response.status}")
-        # Close the connection
-        conn.close()
     except Exception as e:
         print("An error occurred:", e)
+    finally:
+        try:
+            conn.close()
+        except:
+            pass  # Already closed or never opened
 
 def send_dashboard(studio1OnAir, studio2OnAir, studio3OnAir, studioAMicLive, studioBMicLive, studioCMicLive, onSilence):
     # Directly translate GPIO values to True/False with inverted logic

@@ -39,7 +39,11 @@ def print_ok(message):
 # Send a pushover notification.
 def send_pushover(message):
     try:
-        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        if not pushover_token or not pushover_user:
+            print_error("Pushover credentials missing. Check your .env file.")
+            return False
+
+        conn = http.client.HTTPSConnection("api.pushover.net:443", timeout=10)
         conn.request("POST", "/1/messages.json",
         urllib.parse.urlencode({
             "token": pushover_token,
@@ -50,15 +54,33 @@ def send_pushover(message):
             "expire": "180",
             "tags": "RelayStatusSystem"
         }), { "Content-type": "application/x-www-form-urlencoded" })
-        conn.getresponse()
-        print_ok("Pushover notification sent!")
+        response = conn.getresponse()
+        if response.status >= 200 and response.status < 300:
+            print_ok("Pushover notification sent!")
+            return True
+        else:
+            print_error(f"Pushover API error: {response.status} {response.reason}")
+            return False
+    except http.client.HTTPException as e:
+        print_error(f"HTTP error sending Pushover notification: {e}")
+        return False
     except Exception as e:
-        print("An error occurred:", e)
+        print_error(f"Error sending Pushover notification: {e}")
+        return False
+    finally:
+        try:
+            conn.close()
+        except:
+            pass  # Already closed or never opened
 
 # Send a pushover notification using OnAir credentials.
 def send_pushover_onair(message):
     try:
-        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        if not pushover_token_onair or not pushover_user_onair:
+            print_error("OnAir Pushover credentials missing. Check your .env file.")
+            return False
+
+        conn = http.client.HTTPSConnection("api.pushover.net:443", timeout=10)
         conn.request("POST", "/1/messages.json",
         urllib.parse.urlencode({
             "token": pushover_token_onair,
@@ -67,10 +89,24 @@ def send_pushover_onair(message):
             "priority": "-2",
             "tags": "OnAirStatus"
         }), { "Content-type": "application/x-www-form-urlencoded" })
-        conn.getresponse()
-        print_ok("OnAir Pushover notification sent!")
+        response = conn.getresponse()
+        if response.status >= 200 and response.status < 300:
+            print_ok("OnAir Pushover notification sent!")
+            return True
+        else:
+            print_error(f"OnAir Pushover API error: {response.status} {response.reason}")
+            return False
+    except http.client.HTTPException as e:
+        print_error(f"HTTP error sending OnAir Pushover notification: {e}")
+        return False
     except Exception as e:
-        print("An error occurred:", e)
+        print_error(f"Error sending OnAir Pushover notification: {e}")
+        return False
+    finally:
+        try:
+            conn.close()
+        except:
+            pass  # Already closed or never opened
 
 # Helper functions to generate status messages
 def get_studio_name(pin_index):
