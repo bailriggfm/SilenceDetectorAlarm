@@ -17,7 +17,7 @@
 
 import time
 import RPi.GPIO as GPIO
-from .notification import send_pushover, send_discord_webhook, send_pushover_onair, get_status_message
+from .notification import send_pushover, send_discord_webhook, send_pushover_onair, get_status_message, send_notification_async
 from .dashboard import send_dashboard
 
 # Named constants for our GPIO pins
@@ -47,7 +47,7 @@ def setup_gpio():
 
 def monitor_gpio():
     # Debounce settings
-    debounce_time = 0.3  # 300ms debounce
+    debounce_time = 0.1  # 100ms debounce
     silence_last_state = GPIO.HIGH
     last_event_time = 0
 
@@ -70,15 +70,17 @@ def monitor_gpio():
             # Check for state changes with debounce on the original GPIO pin
             if current_state != silence_last_state and (current_time - last_event_time) > debounce_time:
                 if current_state == GPIO.LOW:  # Relay activated
-                    send_pushover("Silence Detector Reset")
-                    send_discord_webhook(
+                    send_notification_async(send_pushover, "Silence Detector Reset")
+                    send_notification_async(
+                        send_discord_webhook,
                         "Silence Detector Reset.",
                         title="Silence Detector",
                         color=0x03f813
                     )
                 else:  # Relay deactivated
-                    send_pushover("Silence Detector Tripped")
-                    send_discord_webhook(
+                    send_notification_async(send_pushover, "Silence Detector Tripped")
+                    send_notification_async(
+                        send_discord_webhook,
                         "Silence Detector Tripped.\nPlease check the correct studio is on air and myriad is functioning correctly",
                         title="Silence Detector",
                         color=0xf71202
@@ -88,7 +90,8 @@ def monitor_gpio():
                 silence_last_state = current_state
 
                 # Update the dashboard
-                send_dashboard(
+                send_notification_async(
+                    send_dashboard,
                     last_states_OnAir_MicLive[0],
                     last_states_OnAir_MicLive[1],
                     last_states_OnAir_MicLive[2],
@@ -112,10 +115,11 @@ def monitor_gpio():
                     status_message = get_status_message(pin_index, current_pin_state)
 
                     # Send notification
-                    send_pushover_onair(status_message)
+                    send_notification_async(send_pushover_onair, status_message)
 
                     # Update the dashboard
-                    send_dashboard(
+                    send_notification_async(
+                        send_dashboard,
                         last_states_OnAir_MicLive[0],
                         last_states_OnAir_MicLive[1],
                         last_states_OnAir_MicLive[2],

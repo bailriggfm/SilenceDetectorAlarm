@@ -18,6 +18,7 @@
 import http.client
 import urllib.parse
 import requests
+import threading
 from datetime import datetime, timezone
 from .config import load_config
 
@@ -35,6 +36,11 @@ def print_error(message):
 
 def print_ok(message):
     print("[", f"{PrintColours.OKGREEN}OK", f"{PrintColours.ENDC}] ", message)
+
+def send_notification_async(func, *args, **kwargs):
+    thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+    thread.daemon = True
+    thread.start()
 
 # Send a pushover notification.
 def send_pushover(message):
