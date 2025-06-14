@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Pico",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/libs/pico-sdk/**",
+                "${workspaceFolder}/build/generated/pico_base/",
+                "${workspaceFolder}/libs/ioLibrary_Driver/**",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Ethernet/**",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/AAC",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/DHCP",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/DHCP6",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/DNS",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/httpServer",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/MQTT",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/SNMP",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/SNTP",
+                "${workspaceFolder}/libs/ioLibrary_Driver/Internet/TFTP"
+            ],
+            "forcedInclude": [
+                "${workspaceFolder}/libs/pico-sdk/src/common/pico_base_headers/include/pico.h",
+                "${workspaceFolder}/build/generated/pico_base/pico/config_autogen.h"
+            ],
+            "defines": [],
+            //"compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-arm",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/libs"
+                ],
+                "limitSymbolsToIncludedHeaders": false
+            }
+        }
+    ],
+    "version": 4
+}

@@ -2,6 +2,7 @@ build
 !.vscode/*
 notes/*
 OLD/*
+examples/*
 
 # Prerequisites
 *.d

@@ -1,0 +1,29 @@
+{
+    "cmake.showSystemKits": true,
+    "cmake.options.statusBarVisibility": "hidden",
+    "cmake.options.advanced": {
+        "build": {
+            "statusBarVisibility": "hidden"
+        },
+        "launch": {
+            "statusBarVisibility": "hidden"
+        },
+        "debug": {
+            "statusBarVisibility": "hidden"
+        }
+    },
+    "cmake.configureOnEdit": false,
+    "cmake.automaticReconfigure": false,
+    "cmake.configureOnOpen": false,
+    "cmake.generator": "Ninja",
+    "cmake.cmakePath": "cmake",
+    "C_Cpp.debugShortcut": false,
+    "raspberry-pi-pico.cmakeAutoConfigure": false,
+    "raspberry-pi-pico.useCmakeTools": false,
+    "raspberry-pi-pico.cmakePath": "cmake",
+    "raspberry-pi-pico.ninjaPath": "ninja",
+    "files.associations": {
+        "time.h": "c",
+        "pico.h": "c"
+    }
+}

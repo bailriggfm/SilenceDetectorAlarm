@@ -87,7 +87,7 @@ message(STATUS "WIZNET_CHIP = ${WIZNET_CHIP}")
 include(lib/pico-sdk/pico_sdk_init.cmake)
 
 # Set project name
-set(PROJECT_NAME BFM_GPIO_Alarm)
+set(PROJECT_NAME BFM_GPIO_Interface)
 
 # Set project informations
 project(${PROJECT_NAME} C CXX ASM)
@@ -130,10 +130,10 @@ add_compile_options(
         -Wno-maybe-uninitialized
         )
 
-# Add our code.
-add_subdirectory(src)
-
 # Add libraries in subdirectories
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 add_subdirectory(${MBEDTLS_DIR})
 add_subdirectory(${PORT_DIR})
+
+# Add our code.
+add_subdirectory(src)

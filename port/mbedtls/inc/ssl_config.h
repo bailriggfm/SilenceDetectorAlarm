@@ -29,6 +29,7 @@
 #ifndef MBEDTLS_CONFIG_H
 #define MBEDTLS_CONFIG_H
 
+// Don't use this with mbeddtls 3.x, it is for 1.3.x
 // #include "mbedtls/check_config.h"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
