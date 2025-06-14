@@ -32,7 +32,7 @@ target_include_directories(ETHERNET_FILES INTERFACE
 
 target_link_libraries(ETHERNET_FILES PUBLIC
         W6100_FILES
-        )       
+        )
 elseif(${WIZNET_CHIP} STREQUAL W6300)
 target_include_directories(ETHERNET_FILES INTERFACE
         ${WIZNET_DIR}/Ethernet
@@ -41,7 +41,7 @@ target_include_directories(ETHERNET_FILES INTERFACE
 
 target_link_libraries(ETHERNET_FILES PUBLIC
         W6300_FILES
-        )       
+        )
 endif()
 
 if(${WIZNET_CHIP} STREQUAL W5100S)
@@ -167,7 +167,7 @@ target_include_directories(DNS_FILES PUBLIC
         ${WIZNET_DIR}/Ethernet
         ${WIZNET_DIR}/Internet/DNS
         )
-        
+
 # HTTP Server
 add_library(HTTPSERVER_FILES STATIC)
 
@@ -204,7 +204,7 @@ target_include_directories(MQTT_FILES PUBLIC
         ${WIZNET_DIR}/Ethernet
         ${WIZNET_DIR}/Internet/MQTT
         ${WIZNET_DIR}/Internet/MQTTPacket/src
-        ) 
+        )
 
 # SNTP
 add_library(SNTP_FILES STATIC)
@@ -217,7 +217,7 @@ target_include_directories(SNTP_FILES PUBLIC
         ${WIZNET_DIR}/Ethernet
         ${WIZNET_DIR}/Internet/SNTP
         )
-        
+
 # SNTP
 add_library(SNMP_FILES STATIC)
 
@@ -230,7 +230,7 @@ target_include_directories(SNMP_FILES PUBLIC
         ${WIZNET_DIR}/Internet/SNMP
         )
 
-        
+# Doesnt compile nicely
 # TFTP Server
 #add_library(TFTP_FILES STATIC)
 #

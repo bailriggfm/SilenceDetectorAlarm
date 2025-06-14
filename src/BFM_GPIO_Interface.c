@@ -9,7 +9,10 @@
  * Includes
  * ----------------------------------------------------------------------------------------------------
  */
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdint.h>
 
 #include "port_common.h"
 
@@ -97,21 +100,71 @@ static uint8_t g_dns_get_ip_flag = 0;
 /* Timer */
 static volatile uint16_t g_msec_cnt = 0;
 
-/**
- * ----------------------------------------------------------------------------------------------------
- * Functions
- * ----------------------------------------------------------------------------------------------------
- */
+// ------- Functions ------ //
 /* Clock */
-static void set_clock_khz(void);
+static void set_clock_khz(void)
+{
+  // set a system clock frequency in khz
+  set_sys_clock_khz(PLL_SYS_KHZ, true);
+
+  // configure the specified clock
+  clock_configure(
+      clk_peri,
+      0,                                                // No glitchless mux
+      CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, // System PLL on AUX mux
+      PLL_SYS_KHZ * 1000,                               // Input frequency
+      PLL_SYS_KHZ * 1000                                // Output (must be same as no divider)
+  );
+}
 
 /* DHCP */
-static void wizchip_dhcp_init(void);
-static void wizchip_dhcp_assign(void);
-static void wizchip_dhcp_conflict(void);
+static void wizchip_dhcp_assign(void)
+{
+  getIPfromDHCP(g_net_info.ip);
+  getGWfromDHCP(g_net_info.gw);
+  getSNfromDHCP(g_net_info.sn);
+  getDNSfromDHCP(g_net_info.dns);
+
+  g_net_info.dhcp = NETINFO_DHCP;
+
+  /* Network initialize */
+  network_initialize(g_net_info); // apply from DHCP
+
+  print_network_information(g_net_info);
+  printf(" DHCP leased time : %ld seconds\n", getDHCPLeasetime());
+}
+
+static void wizchip_dhcp_conflict(void)
+{
+  printf(" Conflict IP from DHCP\n");
+
+  // halt or reset or any...
+  while (1)
+    ; // this example is halt.
+}
+
+static void wizchip_dhcp_init(void)
+{
+  printf(" DHCP client running\n");
+
+  DHCP_init(SOCKET_DHCP, g_ethernet_buf);
+
+  reg_dhcp_cbfunc(wizchip_dhcp_assign, wizchip_dhcp_assign, wizchip_dhcp_conflict);
+}
 
 /* Timer */
-static void repeating_timer_callback(void);
+static void repeating_timer_callback(void)
+{
+  g_msec_cnt++;
+
+  if (g_msec_cnt >= 1000 - 1)
+  {
+    g_msec_cnt = 0;
+
+    DHCP_time_handler();
+    DNS_time_handler();
+  }
+}
 
 /**
  * ----------------------------------------------------------------------------------------------------
@@ -194,112 +247,5 @@ int main()
 
       wizchip_delay_ms(1000); // wait for 1 second
     }
-
-    /* Get IP through DNS */
-    if ((g_dns_get_ip_flag == 0) && (retval == DHCP_IP_LEASED))
-    {
-      while (1)
-      {
-        if (DNS_run(g_net_info.dns, g_dns_target_domain, g_dns_target_ip) > 0)
-        {
-          printf(" DNS success\n");
-          printf(" Target domain : %s\n", g_dns_target_domain);
-          printf(" IP of target domain : %d.%d.%d.%d\n", g_dns_target_ip[0], g_dns_target_ip[1], g_dns_target_ip[2], g_dns_target_ip[3]);
-
-          g_dns_get_ip_flag = 1;
-
-          break;
-        }
-        else
-        {
-          dns_retry++;
-
-          if (dns_retry <= DNS_RETRY_COUNT)
-          {
-            printf(" DNS timeout occurred and retry %d\n", dns_retry);
-          }
-        }
-
-        if (dns_retry > DNS_RETRY_COUNT)
-        {
-          printf(" DNS failed\n");
-
-          while (1)
-            ;
-        }
-
-        wizchip_delay_ms(1000); // wait for 1 second
-      }
-    }
-  }
-}
-
-/**
- * ----------------------------------------------------------------------------------------------------
- * Functions
- * ----------------------------------------------------------------------------------------------------
- */
-/* Clock */
-static void set_clock_khz(void)
-{
-  // set a system clock frequency in khz
-  set_sys_clock_khz(PLL_SYS_KHZ, true);
-
-  // configure the specified clock
-  clock_configure(
-      clk_peri,
-      0,                                                // No glitchless mux
-      CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, // System PLL on AUX mux
-      PLL_SYS_KHZ * 1000,                               // Input frequency
-      PLL_SYS_KHZ * 1000                                // Output (must be same as no divider)
-  );
-}
-
-/* DHCP */
-static void wizchip_dhcp_init(void)
-{
-  printf(" DHCP client running\n");
-
-  DHCP_init(SOCKET_DHCP, g_ethernet_buf);
-
-  reg_dhcp_cbfunc(wizchip_dhcp_assign, wizchip_dhcp_assign, wizchip_dhcp_conflict);
-}
-
-static void wizchip_dhcp_assign(void)
-{
-  getIPfromDHCP(g_net_info.ip);
-  getGWfromDHCP(g_net_info.gw);
-  getSNfromDHCP(g_net_info.sn);
-  getDNSfromDHCP(g_net_info.dns);
-
-  g_net_info.dhcp = NETINFO_DHCP;
-
-  /* Network initialize */
-  network_initialize(g_net_info); // apply from DHCP
-
-  print_network_information(g_net_info);
-  printf(" DHCP leased time : %ld seconds\n", getDHCPLeasetime());
-}
-
-static void wizchip_dhcp_conflict(void)
-{
-  printf(" Conflict IP from DHCP\n");
-
-  // halt or reset or any...
-  while (1)
-    ; // this example is halt.
-}
-
-/* Timer */
-static void repeating_timer_callback(void)
-{
-  g_msec_cnt++;
-
-  if (g_msec_cnt >= 1000 - 1)
-  {
-    g_msec_cnt = 0;
-
-    DHCP_time_handler();
-    DNS_time_handler();
   }
 }
